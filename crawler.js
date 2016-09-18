@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const URL = require('url-parse');
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
-const parameters = 'id,name,feed{message,comments{comment_count,like_count}}';
+const parameters = 'feed{message,comments{comment_count,like_count}}';
 const FB = require('fb');
 
 const candidates = [
@@ -40,10 +40,10 @@ FB.api('oauth/access_token', {
   }
 
   console.log('token', res.access_token);
-  query_data_from_candidate(candidates[0].facebook_name, parameters, res.access_token);
+  lerFeed(candidates[0].facebook_name, parameters, res.access_token);
 });
 
-function query_data_from_candidate(user, parameters, access_token) {
+function lerFeed(user, parameters, access_token) {
   FB.setAccessToken(access_token);
 
   FB.api(
