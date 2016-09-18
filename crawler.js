@@ -3,7 +3,6 @@ const cheerio = require('cheerio');
 const URL = require('url-parse');
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
-const parameters = 'feed{message,comments{comment_count,like_count}}';
 const FB = require('fb');
 
 const candidates = [
@@ -29,41 +28,47 @@ MongoClient.connect(urlDB, function (err, db) {
   db.close();
 });
 
-FB.api('oauth/access_token', {
-  client_id: '1815746298657244',
-  client_secret: '310c0cd744b3a5d4ab533362a272c265',
-  grant_type: 'client_credentials'
-}, function (res) {
-  if (!res || res.error) {
-    console.log(!res ? 'error occurred' : res.error);
-    return;
-  }
+const crawl = () => {
+  FB.api('oauth/access_token', {
+    client_id: '1815746298657244',
+    client_secret: '310c0cd744b3a5d4ab533362a272c265',
+    grant_type: 'client_credentials'
+  }, function (res) {
+    if (!res || res.error) {
+      console.log(!res ? 'error occurred' : res.error);
+      return;
+    }
 
-  FB.setAccessToken(res.access_token);
-  candidates.forEach(candidato => queryOnFeed(candidato.facebook_name))
-});
+    FB.setAccessToken(res.access_token);
+    candidates.forEach(candidato => FeedCrawler(candidato.facebook_name))
+  });
+}
 
-function queryOnFeed(user) {
-  FB.api(
+const FeedCrawler = (user, facebook, logger) => {
+  const parameters = 'feed{message,comments{comment_count,like_count}}';
+  const facebookApi = facebook || FB;
+  const log = logger || console.log;
+
+  facebookApi.api(
     '/' + user,
     'GET',
     { 'fields': parameters },
     function (response) {
       if (response && response.error) {
-        console.log('Erro na chamada do facebook!');
-        console.log(response.error);
+        log('Erro na chamada do facebook!');
+        log(response.error);
         return;
       }
 
       if (!response.feed) {
-        console.log(`O candidato ${user} não permite que seu feed seja lido`);
+        log(`O candidato ${user} não permite que seu feed seja lido`);
         return;
       }
 
       const feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
-        console.log('Mensagem do feed: ', feedItem.message);
+        log('Mensagem do feed: ', feedItem.message);
 
         var total_comments = 0;
         var total_likes = 0;
@@ -75,10 +80,13 @@ function queryOnFeed(user) {
           total_likes += element.like_count;
         });
 
-        console.log('Total de comentários: ', total_comments);
-        console.log('Total de likes: ', total_likes);
-        console.log('-------------------------------------------');
+        log('Total de comentários: ', total_comments);
+        log('Total de likes: ', total_likes);
+        log('-------------------------------------------');
       });
     }
   );
 }
+
+exports.FeedCrawler = FeedCrawler;
+exports.crawl = crawl;
