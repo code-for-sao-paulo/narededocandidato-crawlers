@@ -40,10 +40,10 @@ FB.api('oauth/access_token', {
   }
 
   const token = res.access_token;
-  candidates.forEach(candidato => lerFeed(candidato.facebook_name, parameters, token))
+  candidates.forEach(candidato => queryOnFeed(candidato.facebook_name, parameters, token))
 });
 
-function lerFeed(user, parameters, access_token) {
+function queryOnFeed(user, parameters, access_token) {
   FB.setAccessToken(access_token);
 
   FB.api(
