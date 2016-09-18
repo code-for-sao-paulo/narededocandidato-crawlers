@@ -3,26 +3,26 @@ const cheerio = require('cheerio');
 const URL = require('url-parse');
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
-const parameters = "id,name,feed{message,comments{comment_count,like_count}}";
+const parameters = 'id,name,feed{message,comments{comment_count,like_count}}';
 const FB = require('fb');
 
 const candidates = [
-  { name: "Fernando Haddad", facebook_name: "fernandoHaddad" },
-  { name: "Celso Russomanno", facebook_name: "100003613814366" }
+  { name: 'Fernando Haddad', facebook_name: 'fernandoHaddad' },
+  { name: 'Celso Russomanno', facebook_name: '100003613814366' }
 ];
 
 const urlDB = 'mongodb://localhost:32768/test';
 
 MongoClient.connect(urlDB, function (err, db) {
   assert.equal(null, err);
-  console.log("Connected correctly to server.");
+  console.log('Connected correctly to server.');
   const candidate_collection = db.collection('candidates');
 
   candidate_collection.insert(candidates, function (err, result) {
     if (err) {
       console.log(err);
     } else {
-      console.log('Inserted %d candidates into the "candidates" collection. The candidates inserted with "_id" are:', result.length, result);
+      console.log("Inserted %d candidates into the 'candidates' collection. The candidates inserted with '_id' are:", result.length, result);
     }
   })
 
@@ -49,7 +49,7 @@ function query_data_from_candidate(user, parameters, access_token) {
   FB.api(
     '/' + user,
     'GET',
-    { "fields": parameters },
+    { 'fields': parameters },
     function (response) {
       if (response && response.error) {
         console.log('Erro na chamada do facebook !');
@@ -60,7 +60,7 @@ function query_data_from_candidate(user, parameters, access_token) {
       const feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
-        console.log("Mensagem do feed: " + feedItem.message);
+        console.log('Mensagem do feed: ' + feedItem.message);
 
         var total_comments = 0;
         var total_likes = 0;
@@ -72,8 +72,8 @@ function query_data_from_candidate(user, parameters, access_token) {
           total_likes += element.like_count;
         });
 
-        console.log("Total de comentários: " + total_comments);
-        console.log("Total de likes: " + total_likes);
+        console.log('Total de comentários: ', total_comments);
+        console.log('Total de likes: ', total_likes);
         console.log('-------------------------------------------');
       });
     }
