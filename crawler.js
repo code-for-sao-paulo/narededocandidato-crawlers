@@ -1,84 +1,92 @@
-var request = require('request');
-var cheerio = require('cheerio');
-var URL = require('url-parse');
-var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert');
-var parameters = "id,name,feed{message,comments{comment_count,like_count}}";
-var candidate = 'fernandoHaddad';
-var FB = require('fb');
+const request = require('request');
+const cheerio = require('cheerio');
+const URL = require('url-parse');
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+const FB = require('fb');
 
-var urlDB = 'mongodb://localhost:32768/test';
+const candidates = [
+  { name: 'Fernando Haddad', facebook_name: 'fernandoHaddad' },
+  { name: 'Celso Russomanno', facebook_name: '100003613814366' }
+];
+
+const urlDB = 'mongodb://localhost:32768/test';
+
 MongoClient.connect(urlDB, function (err, db) {
   assert.equal(null, err);
-  console.log("Connected correctly to server.");
-  var candidate_collection = db.collection('candidates');
+  console.log('Connected correctly to server.');
+  const candidate_collection = db.collection('candidates');
 
-  var candidate1 = { name: "Fernando Haddad", facebook_name: "fernandoHaddad" };
-  var candidate2 = { name: "Celso Russomanno", facebook_name: "100003613814366" };
-
-  candidate_collection.insert([candidate1, candidate2], function (err, result) {
+  candidate_collection.insert(candidates, function (err, result) {
     if (err) {
       console.log(err);
     } else {
-      console.log('Inserted %d candidates into the "candidates" collection. The candidates inserted with "_id" are:', result.length, result);
+      console.log(`Inserted ${result.length} candidates into the 'candidates' collection. The candidates inserted with '_id' are: `, result);
     }
   })
 
   db.close();
 });
 
-var accessToken;
-FB.api('oauth/access_token', {
-  client_id: '1815746298657244',
-  client_secret: '310c0cd744b3a5d4ab533362a272c265',
-  grant_type: 'client_credentials'
-}, function (res) {
-  if (!res || res.error) {
-    console.log(!res ? 'error occurred' : res.error);
-    return;
-  }
-  console.log(res.access_token);
-  accessToken = res.access_token;
-});
+const crawl = () => {
+  FB.api('oauth/access_token', {
+    client_id: '1815746298657244',
+    client_secret: '310c0cd744b3a5d4ab533362a272c265',
+    grant_type: 'client_credentials'
+  }, function (res) {
+    if (!res || res.error) {
+      console.log(!res ? 'error occurred' : res.error);
+      return;
+    }
 
-query_data_from_candidate(candidate, parameters, access_token);
+    FB.setAccessToken(res.access_token);
+    candidates.forEach(candidato => FeedCrawler(candidato.facebook_name))
+  });
+}
 
-function query_data_from_candidate(user, parameters, access_token) {
+const FeedCrawler = (user, facebook, logger) => {
+  const parameters = 'feed{message,comments{comment_count,like_count}}';
+  const facebookApi = facebook || FB;
+  const log = logger || console.log;
 
-  FB.setAccessToken(access_token);
-
-  FB.api(
+  facebookApi.api(
     '/' + user,
     'GET',
-    { "fields": parameters },
+    { 'fields': parameters },
     function (response) {
-      var feedItems;
-
       if (response && response.error) {
-        console.log('Erro na chamada do facebook !');
-        console.log(response.error);
+        log('Erro na chamada do facebook!');
+        log(response.error);
         return;
       }
 
-      feedItems = response.feed.data;
+      if (!response.feed) {
+        log(`O candidato ${user} não permite que seu feed seja lido`);
+        return;
+      }
+
+      const feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
-        console.log("Mensagem do feed: " + feedItem.message);
+        log('Mensagem do feed: ', feedItem.message);
 
         var total_comments = 0;
         var total_likes = 0;
 
-        var comments = feedItem.comments.data;
+        const comments = feedItem.comments.data;
 
         comments.forEach(function (element) {
           total_comments += element.comment_count;
           total_likes += element.like_count;
         });
 
-        console.log("Total de comentários: " + total_comments);
-        console.log("Total de likes: " + total_likes);
-        console.log('-------------------------------------------');
+        log('Total de comentários: ', total_comments);
+        log('Total de likes: ', total_likes);
+        log('-------------------------------------------');
       });
     }
   );
 }
+
+exports.FeedCrawler = FeedCrawler;
+exports.crawl = crawl;

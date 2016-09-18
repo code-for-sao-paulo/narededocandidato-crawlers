@@ -6,6 +6,7 @@
   "author": "Hipólito Douglas (Bill)",
   "license": "",
   "scripts": {
+    "test": "mocha -c -S --recursive --compilers js:babel-register -w ./**_test.js",
     "start": "npm install && node crawler.js"
   },
   "dependencies": {
@@ -14,9 +15,12 @@
     "request": "^2.65.0",
     "fb": "^1.1.1",
     "dotenv": "^2.0.0",
-    "mongodb":"^2.0.0"
+    "mongodb": "^2.0.0"
   },
   "devDependencies": {
-    "chai": "^3.5.0"
+    "babel-register": "^6.14.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2",
+    "sinon": "^1.17.5"
   }
 }
