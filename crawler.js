@@ -1,22 +1,22 @@
-var request = require('request');
-var cheerio = require('cheerio');
-var URL = require('url-parse');
-var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert');
-var parameters = "id,name,feed{message,comments{comment_count,like_count}}";
-var FB = require('fb');
+const request = require('request');
+const cheerio = require('cheerio');
+const URL = require('url-parse');
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
+const parameters = "id,name,feed{message,comments{comment_count,like_count}}";
+const FB = require('fb');
 
-var candidates = [
+const candidates = [
   { name: "Fernando Haddad", facebook_name: "fernandoHaddad" },
   { name: "Celso Russomanno", facebook_name: "100003613814366" }
 ];
 
-var urlDB = 'mongodb://localhost:32768/test';
+const urlDB = 'mongodb://localhost:32768/test';
 
 MongoClient.connect(urlDB, function (err, db) {
   assert.equal(null, err);
   console.log("Connected correctly to server.");
-  var candidate_collection = db.collection('candidates');
+  const candidate_collection = db.collection('candidates');
 
   candidate_collection.insert(candidates, function (err, result) {
     if (err) {
@@ -57,7 +57,7 @@ function query_data_from_candidate(user, parameters, access_token) {
         return;
       }
 
-      var feedItems = response.feed.data;
+      const feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
         console.log("Mensagem do feed: " + feedItem.message);
@@ -65,7 +65,7 @@ function query_data_from_candidate(user, parameters, access_token) {
         var total_comments = 0;
         var total_likes = 0;
 
-        var comments = feedItem.comments.data;
+        const comments = feedItem.comments.data;
 
         comments.forEach(function (element) {
           total_comments += element.comment_count;
