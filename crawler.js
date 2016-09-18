@@ -56,7 +56,7 @@ function queryOnFeed(user) {
       }
 
       if (!response.feed) {
-        console.log(`O candidato ${user} não permite que seus feed seja lido`);
+        console.log(`O candidato ${user} não permite que seu feed seja lido`);
         return;
       }
 
