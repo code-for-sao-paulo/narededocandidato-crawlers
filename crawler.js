@@ -39,13 +39,11 @@ FB.api('oauth/access_token', {
     return;
   }
 
-  const token = res.access_token;
-  candidates.forEach(candidato => queryOnFeed(candidato.facebook_name, parameters, token))
+  FB.setAccessToken(res.access_token);
+  candidates.forEach(candidato => queryOnFeed(candidato.facebook_name))
 });
 
-function queryOnFeed(user, parameters, access_token) {
-  FB.setAccessToken(access_token);
-
+function queryOnFeed(user) {
   FB.api(
     '/' + user,
     'GET',
