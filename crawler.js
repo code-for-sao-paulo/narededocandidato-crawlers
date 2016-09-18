@@ -39,8 +39,8 @@ FB.api('oauth/access_token', {
     return;
   }
 
-  console.log('token', res.access_token);
-  lerFeed(candidates[0].facebook_name, parameters, res.access_token);
+  const token = res.access_token;
+  candidates.forEach(candidato => lerFeed(candidato.facebook_name, parameters, token))
 });
 
 function lerFeed(user, parameters, access_token) {
@@ -52,8 +52,13 @@ function lerFeed(user, parameters, access_token) {
     { 'fields': parameters },
     function (response) {
       if (response && response.error) {
-        console.log('Erro na chamada do facebook !');
+        console.log('Erro na chamada do facebook!');
         console.log(response.error);
+        return;
+      }
+
+      if (!response.feed) {
+        console.log('O candidato ', user, ' não permite que seus feed seja lido');
         return;
       }
 
