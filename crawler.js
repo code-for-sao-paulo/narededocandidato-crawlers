@@ -22,7 +22,7 @@ MongoClient.connect(urlDB, function (err, db) {
     if (err) {
       console.log(err);
     } else {
-      console.log("Inserted %d candidates into the 'candidates' collection. The candidates inserted with '_id' are:", result.length, result);
+      console.log(`Inserted ${result.length} candidates into the 'candidates' collection. The candidates inserted with '_id' are: `, result);
     }
   })
 
@@ -58,14 +58,14 @@ function lerFeed(user, parameters, access_token) {
       }
 
       if (!response.feed) {
-        console.log('O candidato ', user, ' não permite que seus feed seja lido');
+        console.log(`O candidato ${user} não permite que seus feed seja lido`);
         return;
       }
 
       const feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
-        console.log('Mensagem do feed: ' + feedItem.message);
+        console.log('Mensagem do feed: ', feedItem.message);
 
         var total_comments = 0;
         var total_likes = 0;
