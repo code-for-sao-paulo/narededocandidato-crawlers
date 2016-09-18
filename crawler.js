@@ -4,19 +4,21 @@ var URL = require('url-parse');
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var parameters = "id,name,feed{message,comments{comment_count,like_count}}";
-var candidate = 'fernandoHaddad';
 var FB = require('fb');
 
+var candidates = [
+  { name: "Fernando Haddad", facebook_name: "fernandoHaddad" },
+  { name: "Celso Russomanno", facebook_name: "100003613814366" }
+];
+
 var urlDB = 'mongodb://localhost:32768/test';
+
 MongoClient.connect(urlDB, function (err, db) {
   assert.equal(null, err);
   console.log("Connected correctly to server.");
   var candidate_collection = db.collection('candidates');
 
-  var candidate1 = { name: "Fernando Haddad", facebook_name: "fernandoHaddad" };
-  var candidate2 = { name: "Celso Russomanno", facebook_name: "100003613814366" };
-
-  candidate_collection.insert([candidate1, candidate2], function (err, result) {
+  candidate_collection.insert(candidates, function (err, result) {
     if (err) {
       console.log(err);
     } else {
@@ -27,7 +29,6 @@ MongoClient.connect(urlDB, function (err, db) {
   db.close();
 });
 
-var accessToken;
 FB.api('oauth/access_token', {
   client_id: '1815746298657244',
   client_secret: '310c0cd744b3a5d4ab533362a272c265',
@@ -37,14 +38,12 @@ FB.api('oauth/access_token', {
     console.log(!res ? 'error occurred' : res.error);
     return;
   }
-  console.log(res.access_token);
-  accessToken = res.access_token;
+
+  console.log('token', res.access_token);
+  query_data_from_candidate(candidates[0].facebook_name, parameters, res.access_token);
 });
 
-query_data_from_candidate(candidate, parameters, access_token);
-
 function query_data_from_candidate(user, parameters, access_token) {
-
   FB.setAccessToken(access_token);
 
   FB.api(
@@ -52,15 +51,13 @@ function query_data_from_candidate(user, parameters, access_token) {
     'GET',
     { "fields": parameters },
     function (response) {
-      var feedItems;
-
       if (response && response.error) {
         console.log('Erro na chamada do facebook !');
         console.log(response.error);
         return;
       }
 
-      feedItems = response.feed.data;
+      var feedItems = response.feed.data;
 
       feedItems.forEach(function (feedItem) {
         console.log("Mensagem do feed: " + feedItem.message);
